@@ -1,0 +1,129 @@
+﻿@model ToDo.Models.Task
+
+<form asp-controller="Task" asp-action="CreateEditTask" class="form-centered" enctype="multipart/form-data">
+    <div class="card" style="width: 550px;" align="center">
+        <div class="card-header">
+            @{
+                string header = "";
+                if (Model != null)
+                    header = "Edit Task";
+                else
+                    header = "New Task";
+                <h5>@header</h5>
+            }
+        </div>
+        <div class="card-body">
+            <input hidden asp-for="Id" /> @*Needed to ensure the Id will be given to the action of the controller so that code will be executed correctly*@
+            <div class="row mb-3">
+                <div class="col">
+                    <input asp-for="Title" type="text" class="form-control" placeholder="Title"></input>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-5">
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="selectPriority">Priority</label>
+                        <select class="form-select" id="selectPriority" asp-for="Priority">
+                            <option value="0">High</option>
+                            <option value="1">Medium</option>
+                            <option value="2">Low</option>
+                        </select>
+                    </div>
+                   
+                </div>
+                <div class="col-7">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Due date</span>
+                        <input asp-for="DueDate" type="date" class="form-control" style="width: 110px;"></input>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <textarea asp-for="Text" type="text" class="form-control" rows="6" placeholder="Text"></textarea>
+                </div>
+            </div>
+            <hr />
+            <div class="row mb-3">
+                <div class="col-2">
+                    <div class="col-form-label" style="text-align: left;">Substeps</div>
+                </div>
+                <div class="col-2">
+                    <button type="button" class="btn btn-info" onclick="addSubstep()">Add</button>
+                </div>
+            </div>
+            <hr />
+            <div class="row mb-3">
+                <div id="substep-container">
+
+                    @if (Model.Substeps != null)
+                    {
+                        for (int i = 0; i < Model.Substeps.Count; i++)
+                        {
+                            <div class="substep-entry" style="text-align: left;">
+                                <input asp-for="@Model.Substeps[i].IsDone" type="checkbox" />
+                                <input asp-for="@Model.Substeps[i].Text" type="text" />
+                                <button class="btn btn-warning" onclick="removeSubstep(this)">Remove</button>
+                            </div>
+                        }
+                    }
+                    
+                  
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row mb-3">
+                    <div class="col">
+                        <button class="btn btn-primary" type="submit">OK</button>
+                    </div>
+                    <div class="col">
+                        <button class="btn btn-danger" type="cancel">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+</form> 
+
+@section Scripts {
+    <script>
+        function addSubstep() {
+            var container = document.getElementById("substep-container");
+            var index = container.getElementsByClassName("substep-entry").length;
+
+            // Create the checkbox input for IsDone
+            var checkBox = document.createElement("input");
+            checkBox.type = "checkbox";
+            checkBox.name = `Substeps[${index}].IsDone`;
+
+            // Create the text input for Text
+            var textInput = document.createElement("input");
+            textInput.type = "text";
+            textInput.name = `Substeps[${index}].Text`;
+            textInput.value = "Zhu Li, do the thing!";
+            // textInput.className = "form-control";
+            textInput.style = "width: 200px;";
+
+            // Create the remove button
+            var removeButton = document.createElement("button");
+            removeButton.innerText = "Remove";
+            removeButton.className = "btn btn-warning mt-3";
+            removeButton.onclick = function () { removeSubstep(this); };
+
+            // Create the container div
+            var div = document.createElement("div");
+            div.style = "text-align: left;";
+            div.className = "substep-entry row-10";
+            div.appendChild(checkBox);
+            div.appendChild(textInput);
+            div.appendChild(removeButton);
+
+            container.appendChild(div);
+        }
+
+        function removeSubstep(element) {
+            var container = document.getElementById("substep-container");
+            container.removeChild(element.parentNode);
+        }
+
+    </script>
+}
