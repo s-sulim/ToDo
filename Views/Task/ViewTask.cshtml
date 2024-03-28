@@ -1,0 +1,181 @@
+﻿@model ToDo.Models.Task
+
+<form asp-controller="Task" asp-action="CreateEditTask" class="form-centered" enctype="multipart/form-data">
+    <div class="card" style="width: 650px;" align="center">
+        <div class="card-header">
+            @{
+                string header = "";
+                if (Model.Id != 0)
+                    header = "Edit Task";
+                else
+                    header = "New Task";
+                <h5>@header</h5>
+            }
+        </div>
+        <div class="card-body">
+            <input hidden asp-for="Id" /> @*Needed to ensure the Id will be given to the action of the controller so that code will be executed correctly*@
+            <div class="row mb-3">
+                <div class="col">
+                    <input asp-for="Title" type="text" class="form-control" placeholder="Title"></input>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-5">
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="selectPriority">Priority</label>
+                        <select class="form-select" id="selectPriority" asp-for="Priority">
+                            <option value="0" style="color:#dc3545;">High</option>
+                            <option value="1" style="color:#fd7e14;">Medium</option>
+                            <option value="2" style="color:#20c997;" icon="1">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-7">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Due date</span>
+                        <input asp-for="DueDate" type="date" class="form-control" style="width: 110px;"></input>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-5">
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="selectType">Type</label>
+                        <select class="form-select" id="selectType" asp-for="Type">
+                            <option value="0">Housework</option>
+                            <option value="1">Business</option>
+                            <option value="2">Self-Improvement</option>
+                            <option value="3">Health</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-5">
+                    <div class="input-group mb-3" style="width: 350px;">
+                        <label class="input-group-text" for="selectState">State</label>
+                        <select class="form-select" id="selectState" asp-for="State">
+                            <option value="0">ToDo</option>
+                            <option value="1">Doing</option>
+                            <option value="2">Done</option>
+                            <option value="3">Backlog</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <textarea asp-for="Text" type="text" class="form-control" rows="6" placeholder="Text"></textarea>
+                </div>
+            </div>
+            <hr />
+            <div class="row mb-3">
+                <div class="col-2">
+                    <div class="col-form-label" style="text-align: left;">Substeps</div>
+                </div>
+                <div class="col-2">
+                    <button type="button" class="btn btn-info" onclick="addSubstep()">Add</button>
+                </div>
+            </div>
+            <hr />
+            <div class="row mb-3">
+                <div id="substep-container">
+
+                    @if (Model.Substeps != null)
+                    {
+                        for (int i = 0; i < Model.Substeps.Count; i++)
+                        {
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-sm-1">
+                                    <input class="form-check-input" asp-for="@Model.Substeps[i].IsDone" type="checkbox" />
+                                </div>
+                                <div class="col-sm-9">
+                                    <input class="form-control" asp-for="@Model.Substeps[i].Text" placeholder="Type here..."/>
+                                </div>
+                             
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-danger" onclick="removeSubstep(this)">Remove</button>
+                                </div>
+                                <input hidden asp-for="@Model.Substeps[i].TaskId" />
+                                <input hidden asp-for="@Model.Substeps[i].Id" />
+                                <input hidden name="Substeps[@i].MarkedForDeletion" class="substep-delete" value="false" />
+                            </div>
+                        }
+                    }
+                    
+                  
+                </div>
+            </div>
+            <div class="card-footer mt-6" style="height:50px;">
+                <div class="row">
+                    <div class="col-8" style="text-align: left;" >
+                        <button asp-route-id="@Model.Id" asp-controller="Task" asp-action="DeleteTask" class="btn btn-danger">Delete this task</button>
+                    </div>
+                    <div class="col-2" style="text-align: right;">
+                        <button class="btn btn-warning" type="cancel" style="width:100px;">Cancel</button>
+                    </div>
+                    <div class="col-2" style="text-align: right;">
+                        <button class="btn btn-primary" type="submit" style="width:100px;">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+</form> 
+
+@section Scripts {
+    <script>
+        function addSubstep() {
+            var container = document.getElementById("substep-container");
+            var index = container.querySelectorAll('.row').length;
+
+            var row = document.createElement("div");
+            row.className = "row mb-2 align-items-center";
+
+            var colCheckbox = document.createElement("div");
+            colCheckbox.className = "col-sm-1";
+            var checkBox = document.createElement("input");
+            checkBox.type = "checkbox";
+            checkBox.className = "form-check-input";
+            checkBox.name = `Substeps[${index}].IsDone`;
+            checkBox.onchange = function () { toggleStrikethrough(this, index); };
+            colCheckbox.appendChild(checkBox);
+
+            var colInput = document.createElement("div");
+            colInput.className = "col-sm-9";
+            var textInput = document.createElement("input");
+            textInput.type = "text";
+            textInput.className = "form-control";
+            textInput.name = `Substeps[${index}].Text`;
+            textInput.placeholder = "Type here...";
+            colInput.appendChild(textInput);
+
+            var colButton = document.createElement("div");
+            colButton.className = "col-sm-2";
+            var removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "btn btn-danger";
+            removeButton.innerText = "Remove";
+            removeButton.onclick = function () { removeSubstep(this); };
+            colButton.appendChild(removeButton);
+
+            row.appendChild(colCheckbox);
+            row.appendChild(colInput);
+            row.appendChild(colButton);
+
+            container.appendChild(row);
+        }
+
+        function removeSubstep(element) {
+            debugger;
+
+            var row = element.closest('.row');
+            row.style.display = 'none'; // Hide the row instead of removing it
+           
+            // Find and set the hidden input for deletion
+            var deleteInput = row.querySelector(".substep-delete");
+            if (deleteInput) {
+                deleteInput.value = "true";
+            }
+        }
+
+
+    </script>
+}

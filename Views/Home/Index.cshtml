@@ -18,7 +18,7 @@
             </h4>
         </div>
         <div class="col-2">
-            <a class="btn btn-primary" asp-controller="Task" asp-action="OpenTask">
+            <a class="btn btn-primary" asp-controller="Task" asp-action="ViewTask">
                 New task
             </a>
         </div>
@@ -28,7 +28,7 @@
     foreach (ToDo.Models.Task task in Model)
     {
         <div class="list-group mt-2">
-            <a class="list-group-item list-group-item-action" aria-current="true" asp-route-id="@task.Id" asp-controller="Task" asp-action="OpenTask">
+            <a class="list-group-item list-group-item-action" aria-current="true" asp-route-id="@task.Id" asp-controller="Task" asp-action="ViewTask">
                 <div class="d-flex w-100 justify-content-between">
                     <h5 class="mb-1">@task.Title</h5>
                     <small>Due @task.DueDate.ToShortDateString()</small>

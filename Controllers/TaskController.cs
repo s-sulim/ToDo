@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ToDo.Data;
 
 namespace ToDo.Controllers
@@ -16,18 +17,21 @@ namespace ToDo.Controllers
         {
             return View();
         }
-        public IActionResult OpenTask(int id)
+        private ToDo.Models.Task GetTaskById(int id)
+        {
+            return _context.Tasks.Include(t => t.Substeps).FirstOrDefault(t => t.Id == id);
+        }
+        public IActionResult ViewTask(int id)
         {
             if (id != 0)
             {
-                var taskFromDb = _context.Tasks.SingleOrDefault(j => j.Id == id);
-                taskFromDb.Substeps = _context.Substeps.Where(j => j.Id == id).ToList();
+                var taskFromDb = GetTaskById(id);
                 if (taskFromDb != null)
                 {
-                    if ((taskFromDb.CreatedUserName != User.Identity.Name) && !User.IsInRole("Admin"))
-                    {
-                        return Unauthorized();
-                    }
+                    //if ((taskFromDb.CreatedUserName != User.Identity.Name) && !User.IsInRole("Admin"))
+                    //{
+                    //    return Unauthorized();
+                    //}
                     return View(taskFromDb);
                 }
                 else
@@ -35,7 +39,7 @@ namespace ToDo.Controllers
                     return NotFound();
                 }
             }
-            return View(new Models.Task() { DueDate = DateTime.Today,Substeps = new List<Models.Task.Substep>() { new Models.Task.Substep() {IsDone = false, Text = "Substep text" } } });
+            return View(new Models.Task() { DueDate = DateTime.Today,Substeps = new List<Models.Task.Substep>() { new Models.Task.Substep() {IsDone = false, Text = "" } } });
         }
         public IActionResult CreateEditTask(ToDo.Models.Task task)
         {
@@ -48,10 +52,39 @@ namespace ToDo.Controllers
             }
             else
             {
+                foreach (var item in task.Substeps.Where(s => s.MarkedForDeletion))
+                {
+                    if (_context.Substeps.Any(s=>s.Id == item.Id))
+                    {
+                        _context.Substeps.Remove(item);
+                    }
+                }
                 _context.Tasks.Update(task);
             }
             _context.SaveChanges();
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", "Home");
+        }
+        public IActionResult DeleteTask(int id)
+        {
+            if (id != 0)
+            {
+                var taskFromDb = GetTaskById(id);
+                if (taskFromDb == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    _context.Tasks.Remove(taskFromDb);
+                    foreach (var item in taskFromDb.Substeps)
+                    {
+                        _context.Substeps.Remove(item);
+                    }
+                    _context.SaveChanges();
+                }
+               
+            }
+            return RedirectToAction("Index", "Home");
         }
     }
 }
