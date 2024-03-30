@@ -9,7 +9,7 @@
                     header = "Edit Task";
                 else
                     header = "New Task";
-                <h5>@header</h5>
+                            <h5>@header</h5>
             }
         </div>
         <div class="card-body">
@@ -23,7 +23,7 @@
                 <div class="col-5">
                     <div class="input-group mb-3">
                         <label class="input-group-text" for="selectPriority">Priority</label>
-                        <select class="form-select" id="selectPriority" asp-for="Priority">
+                        <select class="form-select" id="selectPriority" asp-for="Priority" onclick="onSelectPriority(this)">
                             <option value="0" style="color:#dc3545;">High</option>
                             <option value="1" style="color:#fd7e14;">Medium</option>
                             <option value="2" style="color:#20c997;" icon="1">Low</option>
@@ -107,10 +107,10 @@
             <div class="card-footer mt-6" style="height:50px;">
                 <div class="row">
                     <div class="col-8" style="text-align: left;" >
-                        <button asp-route-id="@Model.Id" asp-controller="Task" asp-action="DeleteTask" class="btn btn-danger">Delete this task</button>
+                        <button class="btn btn-danger" type="button" onClick="showConfirmationDialog(@Model.Id)">Delete this task</button>
                     </div>
                     <div class="col-2" style="text-align: right;">
-                        <button class="btn btn-warning" type="cancel" style="width:100px;">Cancel</button>
+                        <button class="btn btn-warning" type="button" onClick="cancel()" style="width:100px;">Cancel</button>
                     </div>
                     <div class="col-2" style="text-align: right;">
                         <button class="btn btn-primary" type="submit" style="width:100px;">OK</button>
@@ -163,9 +163,20 @@
             container.appendChild(row);
         }
 
-        function removeSubstep(element) {
-            debugger;
+        function onSelectPriority(select){
 
+            if (select.value == 0) {
+                select.style = "color:#dc3545;";
+            }
+            else if (select.value == 1) {
+                select.style = "color:#fd7e14;";
+            }
+            else if (select.value == 2) {
+                select.style = "color:#20c997;";
+            }
+        }
+
+        function removeSubstep(element) {
             var row = element.closest('.row');
             row.style.display = 'none'; // Hide the row instead of removing it
            
@@ -176,6 +187,49 @@
             }
         }
 
+        function showConfirmationDialog(id) {
+            Swal.fire({
+                title: "Are you sure you want to delete this task?",
+                text: "This can't be undone!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                cancelButtonText: "Cancel",
+                confirmButtonText: "Delete"
+            }).then((result) => {
+                debugger;
+                if (result.isConfirmed) {
+                   
+                    //Backend call to delete job by id
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("DeleteTask")",
+                        data: { id: id },
+                        success: function (msg) {
+
+                            Swal.fire({
+                                title: "Deleted",
+                                text: "Task deleted successfully.",
+                                icon: "success"
+                            }).then((result) => {
+                                window.location.href = '/'; //Reload page
+                            });
+                        },
+                        error: function (msg) {
+                            Swal.fire({
+                                title: "Error",
+                                text: "Couldn't delete task!",
+                                icon: "error"
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        function cancel() {
+            window.location.href = '/';
+        }
 
     </script>
 }

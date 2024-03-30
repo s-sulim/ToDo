@@ -64,6 +64,7 @@ namespace ToDo.Controllers
             _context.SaveChanges();
             return RedirectToAction("Index", "Home");
         }
+        [HttpPost]
         public IActionResult DeleteTask(int id)
         {
             if (id != 0)
