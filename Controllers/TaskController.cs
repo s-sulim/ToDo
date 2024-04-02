@@ -87,5 +87,9 @@ namespace ToDo.Controllers
             }
             return RedirectToAction("Index", "Home");
         }
+        public IActionResult Admin()
+        {
+            return View(_context.Tasks.ToList());
+        }
     }
 }

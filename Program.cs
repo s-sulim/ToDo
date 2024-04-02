@@ -11,10 +11,52 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        //Create default user roles
+
+        var roleManager = services.GetService<RoleManager<IdentityRole>>();
+        string[] roleNames = { "Admin" };
+        foreach (var roleName in roleNames)
+        {
+            var roleExist = await roleManager.RoleExistsAsync(roleName);
+            if (!roleExist)
+            {
+                await roleManager.CreateAsync(new IdentityRole(roleName));
+            }
+        }
+
+        //Create default admin user
+
+        string userName = "admin@todoapp.net", role = "Admin", password = "Yerobota!1";
+        var userManager = services.GetService<UserManager<IdentityUser>>();
+
+        var user = await userManager.FindByNameAsync(userName);
+        if (user == null)
+        {
+            var newUser = new IdentityUser() { UserName = userName, Email = userName };
+            await userManager.CreateAsync(newUser, password);
+        }
+        user = await userManager.FindByNameAsync(userName);
+        userManager.AddToRoleAsync(user, role).Wait();
+
+    }
+    catch (Exception exception)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(exception, "An error occurred while creating roles");
+    }
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
