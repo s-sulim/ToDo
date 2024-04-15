@@ -19,7 +19,7 @@ namespace ToDo.Controllers
 
         public IActionResult Index()
         {
-            return View(_context.Tasks.ToList());
+            return View(_context.Tasks.ToList().Where(t=>t.AssignedUserName.Equals(User.Identity.Name)).ToList());
         }
 
         public IActionResult Privacy()

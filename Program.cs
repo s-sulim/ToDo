@@ -25,7 +25,11 @@ using (var scope = app.Services.CreateScope())
         //Create default user roles
 
         var roleManager = services.GetService<RoleManager<IdentityRole>>();
-        string[] roleNames = { "Admin" };
+
+        string defaultRole = "User";
+        string adminRole = "Admin";
+        string[] roleNames = { defaultRole, adminRole };
+
         foreach (var roleName in roleNames)
         {
             var roleExist = await roleManager.RoleExistsAsync(roleName);
@@ -37,7 +41,7 @@ using (var scope = app.Services.CreateScope())
 
         //Create default admin user
 
-        string userName = "admin@todoapp.net", role = "Admin", password = "Yerobota!1";
+        string userName = "admin@todoapp.net", role = adminRole, password = "Yerobota!1";
         var userManager = services.GetService<UserManager<IdentityUser>>();
 
         var user = await userManager.FindByNameAsync(userName);
@@ -49,6 +53,22 @@ using (var scope = app.Services.CreateScope())
         user = await userManager.FindByNameAsync(userName);
         userManager.AddToRoleAsync(user, role).Wait();
 
+
+        // Get all users
+        var users = userManager.Users.ToList();
+        foreach (var usr in users)
+        {
+            // Check if the user is in the Admin role
+            if (!await userManager.IsInRoleAsync(usr, adminRole))
+            {
+                // Check if the user is already in the default role
+                if (!await userManager.IsInRoleAsync(usr, defaultRole))
+                {
+                    // Assign default role
+                    await userManager.AddToRoleAsync(usr, defaultRole);
+                }
+            }
+        }
     }
     catch (Exception exception)
     {

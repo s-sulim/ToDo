@@ -1,0 +1,37 @@
+﻿@model List<UserRolesViewModel>
+@{
+    ViewData["Title"] = "Users";
+}
+<form asp-action="AssignRoles" asp-controller="User" method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User Name</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <label class="control-label">@Model[i].UserName</label>
+                    </td>
+                    <td>
+                        <div class="form-group">
+
+                            <select asp-for="@Model[i].SelectedRole" class="form-select" asp-items="@(new SelectList(@Model[i].Roles, "Value", "Text"))">
+                            </select>
+                            <input type="hidden" asp-for="@Model[i].UserId" />
+                            <input type="hidden" asp-for="@Model[i].UserName" />
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Assign Roles</button>
+
+</form>
+
+

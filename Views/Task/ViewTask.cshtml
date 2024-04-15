@@ -1,5 +1,9 @@
 ﻿@model ToDo.Models.Task
 
+@{
+    var isAdmin = User.IsInRole("Admin");
+}
+
 <form asp-controller="Task" asp-action="CreateEditTask" class="form-centered" enctype="multipart/form-data">
     <div class="card" style="width: 650px;" align="center">
         <div class="card-header">
@@ -9,11 +13,14 @@
                     header = "Edit Task";
                 else
                     header = "New Task";
-                            <h5>@header</h5>
+                                <h5>@header</h5>
             }
         </div>
         <div class="card-body">
             <input hidden asp-for="Id" /> @*Needed to ensure the Id will be given to the action of the controller so that code will be executed correctly*@
+            <input hidden asp-for="CreatedUserName" />
+            <input hidden asp-for="FinishedUserName" /> 
+            <input hidden asp-for="CreatedDate" /> 
             <div class="row mb-3">
                 <div class="col">
                     <input asp-for="Title" type="text" class="form-control" placeholder="Title"></input>
@@ -60,6 +67,17 @@
                         </select>
                     </div>
                 </div>
+                @if (isAdmin)
+                {
+                   
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="selectState">Assigned user</label>
+                        <select class="form-select" id="user-select" asp-for="AssignedUserName">
+                        </select>
+                    </div>
+                } else{
+                <input hidden asp-for="AssignedUserName" />
+                }
             </div>
             <div class="row mb-3">
                 <div class="col">
@@ -122,6 +140,7 @@
 
 @section Scripts {
     <script>
+
         function addSubstep() {
             var container = document.getElementById("substep-container");
             var index = container.querySelectorAll('.row').length;
@@ -227,9 +246,39 @@
                 }
             });
         }
+        
         function cancel() {
             window.location.href = '/';
         }
-
+        
+          
     </script>
+    @if (isAdmin)
+    {
+        <script>
+            $(document).ready(function () {
+                $.ajax({
+                    url: '@Url.Action("GetAllUsers", "User")',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (users) {
+                        var select = $('#user-select');
+                        $.each(users, function (i, user) {
+                            debugger;
+                            var assignedUserName = @Html.Raw(Json.Serialize(Model.AssignedUserName));
+                            var option = $('<option>', {
+                                text: user.userName,
+                                value: user.userName,
+                                selected: user.userName === assignedUserName
+                            });
+                            select.append(option);
+                        });
+                    },
+                    error: function () {
+                        alert('Error loading users.');
+                    }
+                });
+            });
+        </script>
+    }
 }

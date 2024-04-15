@@ -17,10 +17,15 @@ namespace ToDo.Controllers
         {
             return View();
         }
+        private List<ToDo.Models.Task> GetAllTask()
+        {
+            return _context.Tasks.Include(t => t.Substeps).ToList();
+        }
         private ToDo.Models.Task GetTaskById(int id)
         {
-            return _context.Tasks.Include(t => t.Substeps).FirstOrDefault(t => t.Id == id);
+            return GetAllTask().FirstOrDefault(t => t.Id == id);
         }
+        [Authorize]
         public IActionResult ViewTask(int id)
         {
             if (id != 0)
@@ -41,6 +46,7 @@ namespace ToDo.Controllers
             }
             return View(new Models.Task() { DueDate = DateTime.Today,Substeps = new List<Models.Task.Substep>() { new Models.Task.Substep() {IsDone = false, Text = "" } } });
         }
+        [Authorize]
         public IActionResult CreateEditTask(ToDo.Models.Task task)
         {
             if (task.Id == 0)
@@ -65,6 +71,7 @@ namespace ToDo.Controllers
             return RedirectToAction("Index", "Home");
         }
         [HttpPost]
+        [Authorize]
         public IActionResult DeleteTask(int id)
         {
             if (id != 0)
@@ -87,9 +94,10 @@ namespace ToDo.Controllers
             }
             return RedirectToAction("Index", "Home");
         }
+        [Authorize(Roles = "Admin")]
         public IActionResult Admin()
         {
-            return View(_context.Tasks.ToList());
+            return View(GetAllTask());
         }
     }
 }
